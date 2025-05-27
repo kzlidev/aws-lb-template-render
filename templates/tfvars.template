@@ -1,0 +1,31 @@
+{%- for item in load_balancers %}
+load_balancer_config = {
+    arn = "{{item.arn}}"
+    listeners = [
+    {%- for listener in item.listeners %}
+        {
+            arn = "{{listener.arn}}",
+            port = "{{listener.port}}",
+            protocol = "{{listener.protocol}}"
+            rules = [
+            {%- for rule in listener.rules %}
+                arn = "{{rule.arn}}"
+                target_group = {
+                {%- for action in rule.actions %}
+                    target_group_arn = "{{action.TargetGroupArn}}",
+                    type = "{{action.type}}",
+                    order = "{{action.Order}}"
+                {%- endfor %}
+                }
+            {%- endfor %}
+            ]
+            certificate_arns = [
+            {%- for certificate in listener.certificates %}
+                "{{certificate.CertificateArn}}"{% if not loop.last %}, {% endif %}
+            {%- endfor %}
+            ]
+        }{% if not loop.last %}, {% endif %}
+    {%- endfor %}
+    ]
+}
+{%- endfor %}
