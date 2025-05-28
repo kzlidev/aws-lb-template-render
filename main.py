@@ -26,13 +26,15 @@ def get_all_lb_attributes():
         lb_attributes = elbv2.describe_load_balancer_attributes(LoadBalancerArn=lb_arn)
         # Get LB tags
         lb_tags = elbv2.describe_tags(ResourceArns=[lb_arn])
+
         audit_dump_lb_attributes = lb
         audit_dump_lb_attributes["Attributes"] = lb_attributes
         audit_dump_lb_attributes["Tags"] = lb_tags
         audit_dump_lb_attributes["Listeners"] = []
-        lb_listeners = elbv2.describe_listeners(LoadBalancerArn=lb_arn)
+        audit_dump_lb_attributes["TargetGroups"] = []
 
         # For each LB, get the listener information
+        lb_listeners = elbv2.describe_listeners(LoadBalancerArn=lb_arn)
         for listener in lb_listeners.get("Listeners"):
             lb_listener_arn = listener["ListenerArn"]
             # Get listener rules
@@ -45,6 +47,23 @@ def get_all_lb_attributes():
                 "Rules": lb_listener_rules,
                 "Certificates": lb_listener_certs
             })
+
+        # For each LB, get the target groups
+        lb_target_groups = elbv2.describe_target_groups(LoadBalancerArn=lb_arn)
+        # audit_dump_lb_attributes["TargetGroups"] = lb_target_groups
+        # print(lb_target_groups)
+        # target_groups_attributes = lb_target_groups
+        for tg in lb_target_groups.get("TargetGroups"):
+            tg_arn = tg.get("TargetGroupArn")
+            tg_attributes = elbv2.describe_target_group_attributes(TargetGroupArn=tg_arn)
+            # target_groups_attributes["Attributes"] = tg_attributes
+            audit_dump_lb_attributes["TargetGroups"].append(
+                {
+                    "TargetGroup": tg,
+                    "Attributes": tg_attributes
+                }
+            )
+            # audit_dump_lb_attributes["TargetGroups"].append(target_groups_attributes)
 
         response_audit_dump.append(audit_dump_lb_attributes)
     write_file("audit.json", str(response_audit_dump))
@@ -94,6 +113,25 @@ def format_lb_attributes(load_balancers_info):
             "idle_timeout": get_attribute_value(lb_attributes, "idle_timeout.timeout_seconds", 60),
             "preserve_host_header": get_attribute_value(lb_attributes, "routing.http.preserve_host_header.enabled", "false"),
             "listeners": [],
+            "target_groups": [],
+            "access_logs": [{
+                "bucket": get_attribute_value(lb_attributes, "access_logs.s3.bucket", ""),
+                "enabled": get_attribute_value(lb_attributes, "access_logs.s3.enabled", "false"),
+                "prefix": get_attribute_value(lb_attributes, "access_logs.s3.prefix", "")
+            }],
+            "connection_logs": [{
+                "bucket": get_attribute_value(lb_attributes, "connection_logs.s3.bucket", ""),
+                "enabled": get_attribute_value(lb_attributes, "connection_logs.s3.enabled", "false"),
+                "prefix": get_attribute_value(lb_attributes, "connection_logs.s3.prefix", "")
+            }],
+            "subnet_mapping": [
+                {
+                    "subnet_id": az.get("SubnetId"),
+                    "allocation_id": az.get("LoadBalancerAddresses")[0].get("AllocationId") if az.get("LoadBalancerAddresses") else "null",
+                    "ipv6_address": az.get("LoadBalancerAddresses")[0].get("IPv6Address") if az.get("LoadBalancerAddresses") else "null",
+                    "private_ipv4_address": az.get("LoadBalancerAddresses")[0].get("PrivateIPv4Address") if az.get("LoadBalancerAddresses") else "null"
+                } for az in lb.get("AvailabilityZones")
+            ],
             "tags": [{"key": tag.get("Key"), "value": tag.get("Value")} for tag in lb_tags.get("TagDescriptions", [{"Tags": {}}])[0].get("Tags", [])]
         }
 
@@ -143,8 +181,7 @@ def format_lb_attributes(load_balancers_info):
 
             if certificates:
                 certificate_arn = next((cert["CertificateArn"] for cert in certificates if cert["IsDefault"]))  # Default certificate
-                additional_certificate_arns = [cert["CertificateArn"] for cert in certificates if not cert[
-                    "IsDefault"]]  # Any additional certificates attached to the listener
+                additional_certificate_arns = [cert["CertificateArn"] for cert in certificates if not cert["IsDefault"]]  # Any additional certificates attached to the listener
 
             formatted_listener_config["certificate_arn"] = certificate_arn
             formatted_listener_config["additional_certificate_arns"] = additional_certificate_arns
@@ -155,6 +192,30 @@ def format_lb_attributes(load_balancers_info):
 
             formatted_lb_attributes["listeners"].append(formatted_lb_listener)
 
+        lb_tgs = lb.get("TargetGroups")
+        for tg_info in lb_tgs:
+            tg = tg_info.get("TargetGroup")
+            tg_attributes = tg_info.get("Attributes")
+            formatted_lb_attributes["target_groups"].append({
+                "name": tg.get("TargetGroupName"),
+                "port": tg.get("Protocol"),
+                "protocol": tg.get("Port"),
+                "vpc_id": tg.get("VpcId"),
+                "health_check": {
+                    "enabled": str(tg.get("HealthCheckEnabled")).lower(),
+                    "healthy_threshold": tg.get("HealthyThresholdCount"),
+                    "interval": tg.get("HealthCheckIntervalSeconds"),
+                    "path": tg.get("HealthCheckPath"),
+                    "protocol": tg.get("HealthCheckProtocol"),
+                    "timeout": tg.get("HealthCheckTimeoutSeconds"),
+                    "unhealthy_threshold": tg.get("UnhealthyThresholdCount"),
+                },
+                "stickiness": {
+                    "enabled": get_attribute_value(tg_attributes, "stickiness.enabled", "false"),
+                    "type": get_attribute_value(tg_attributes, "stickiness.type", "source_ip"),
+                },
+                "target_type": tg.get("TargetType")
+            })
         compiled_load_balancers["load_balancers"].append(formatted_lb_attributes)
 
     write_file("render.json", str(compiled_load_balancers))

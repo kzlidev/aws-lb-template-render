@@ -12,6 +12,58 @@ lb_config = {
     vpc_id = "{{ item.vpc_id }}"
     security_groups_ids = {{ item.security_groups_ids }}
 
+    subnet_mapping = [
+      {%- for subnet in item.subnet_mapping %}
+      {
+        {%- for key, value in subnet.items() %}
+        {{ key }} = {{ '"' ~ value ~ '"' if value != "null" else value }}
+        {%- endfor %}
+      }{% if not loop.last %}, {% endif %}
+      {%- endfor %}
+    ]
+
+    access_logs = [
+      {%- for log in item.access_logs %}
+      {
+        {%- for key, value in log.items() %}
+        {{ key }} = {{ '"' ~ value ~ '"' if value != "null" and value|lower not in ['true', 'false'] else value }}
+        {%- endfor %}
+      }{% if not loop.last %}, {% endif %}
+      {%- endfor %}
+    ]
+
+    connection_logs = [
+      {%- for log in item.connection_logs %}
+      {
+        {%- for key, value in log.items() %}
+        {{ key }} = {{ '"' ~ value ~ '"' if value != "null" and value|lower not in ['true', 'false'] else value }}
+        {%- endfor %}
+      }{% if not loop.last %}, {% endif %}
+      {%- endfor %}
+    ]
+
+    target_groups = {
+      {%- for tg in item.target_groups %}
+      {{ tg.name }} = {
+        name = "{{ tg.name }}"
+        port = "{{ tg.port }}"
+        protocol = "{{ tg.protocol }}"
+        vpc_id = "{{ tg.vpc_id }}"
+        target_type = "{{ tg.target_type }}"
+        health_check = {
+          {%- for key, value in tg.health_check.items() %}
+          {{ key }} = {{ '"' ~ value ~ '"' if value != "null" and value|lower not in ['true', 'false'] and value is not number else value }}
+          {%- endfor %}
+        }
+        stickiness = {
+          {%- for key, value in tg.stickiness.items() %}
+          {{ key }} = {{ '"' ~ value ~ '"' if value != "null" and value|lower not in ['true', 'false'] and value is not number else value }}
+          {%- endfor %}
+        }
+      }{% if not loop.last %}, {% endif %}
+      {%- endfor %}
+    }
+
     ip_address_type = "{{ item.ip_address_type }}"
     load_balancer_type = "{{ item.load_balancer_type }}"
     customer_owned_ipv4_pool = "{{ item.customer_owned_ipv4_pool }}"
