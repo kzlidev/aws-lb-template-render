@@ -3,36 +3,34 @@ lb_config = {
   "{{ item.lb_name }}" = {
     lb_name = "{{ item.lb_name }}"
     internal = {{ item.internal }}
-    load_balancer_type = "{{ item.load_balancer_type }}"
     subnet = {{ item.subnets }}
     tags = {
       {%- for tag in item.tags %}
       {{ tag.key }} = "{{ tag.value }}"
       {%- endfor %}
     }
-    deletion_protection = "{{ item.deletion_protection }}"
-    enable_cross_zone_load_balancing = "{{ item.enable_cross_zone_load_balancing }}"
     vpc_id = "{{ item.vpc_id }}"
     security_groups_ids = {{ item.security_groups_ids }}
 
     ip_address_type = "{{ item.ip_address_type }}"
     load_balancer_type = "{{ item.load_balancer_type }}"
-    client_keep_alive = "{{ item.client_keep_alive }}"
     customer_owned_ipv4_pool = "{{ item.customer_owned_ipv4_pool }}"
     desync_mitigation_mode = "{{ item.desync_mitigation_mode }}"
     dns_record_client_routing_policy = "{{ item.dns_record_client_routing_policy }}"
-    drop_invalid_header_fields = "{{ item.drop_invalid_header_fields }}"
-    enable_cross_zone_load_balancing = "{{ item.enable_cross_zone_load_balancing }}"
-    enable_deletion_protection = "{{ item.enable_deletion_protection }}"
-    enable_http2 = "{{ item.enable_http2 }}"
-    enable_tls_version_and_cipher_suite_headers = "{{ item.enable_tls_version_and_cipher_suite_headers }}"
-    enable_waf_fail_open = "{{ item.enable_waf_fail_open }}"
-    enable_xff_client_port = "{{ item.enable_xff_client_port }}"
-    xff_header_processing_mode = "{{ item.xff_header_processing_mode }}"
-    enable_zonal_shift = "{{ item.enable_zonal_shift }}"
     enforce_security_group_inbound_rules_on_private_link_traffic = "{{ item.enforce_security_group_inbound_rules_on_private_link_traffic }}"
     idle_timeout = "{{ item.idle_timeout }}"
-    preserve_host_header = "{{ item.preserve_host_header }}"
+    xff_header_processing_mode = "{{ item.xff_header_processing_mode }}"
+
+    client_keep_alive = {{ item.client_keep_alive }}
+    drop_invalid_header_fields = {{ item.drop_invalid_header_fields }}
+    enable_cross_zone_load_balancing = {{ item.enable_cross_zone_load_balancing }}
+    enable_deletion_protection = {{ item.enable_deletion_protection }}
+    enable_http2 = {{ item.enable_http2 }}
+    enable_tls_version_and_cipher_suite_headers = {{ item.enable_tls_version_and_cipher_suite_headers }}
+    enable_waf_fail_open = {{ item.enable_waf_fail_open }}
+    enable_xff_client_port = {{ item.enable_xff_client_port }}
+    enable_zonal_shift = {{ item.enable_zonal_shift }}
+    preserve_host_header = {{ item.preserve_host_header }}
 
     listeners = {
       {%- for listener in item.listeners %}

@@ -47,7 +47,7 @@ lb_config = {
   }
   "test-lb" = {
     lb_name     = "example-lb"
-    name_prefix = "exlb-"
+    name_prefix = "exlb-"                           # Accounting for prefix
     internal    = true
 
     ip_address_type  = "ipv4"
