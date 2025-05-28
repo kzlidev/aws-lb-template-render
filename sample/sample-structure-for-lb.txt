@@ -1,0 +1,150 @@
+lb_config = {
+  "psm-lb" = {
+    lb_name            = "psm-lb"
+    internal           = true
+    load_balancer_type = "network"
+    subnet             = ["subnet-xxxxx"]
+    tags = {
+      Project-Code = "CK"
+      Team         = "SEC"
+      Name         = "psm-lb"
+    }
+    deletion_protection              = true
+    enable_cross_zone_load_balancing = true
+    security_groups_ids             = ["sg-xxxx"]
+    listeners = {
+      listener-3389 = {                         # KZ: Name of this is inconsistent with below
+        port     = 3389
+        protocol = "TCP"
+        weighted_forward = [{
+          target_group_key = "psm-tg" # Reference to the key in target_groups # KZ: What is this key?
+          target_groups = [{
+            target_group_key = "psm-tg" # Reference to the key in target_groups
+            weight           = 0
+          }]
+        }]
+      }
+    }
+    target_groups = {
+      psm-tg = {
+        name              = "psm-tg-01"
+        port              = 3389
+        protocol          = "TCP"
+        target_type       = "instance"
+        vpc_id            = "vpc-xxxx"
+        create_attachment = false
+        health_check = {
+          enabled             = true
+          port                = "traffic-port"
+          protocol            = "TCP"
+          healthy_threshold   = 5
+          unhealthy_threshold = 2
+          timeout             = 10
+          interval            = 30
+        }
+      }
+    }
+  }
+  "test-lb" = {
+    lb_name     = "example-lb"
+    name_prefix = "exlb-"
+    internal    = true
+
+    ip_address_type  = "ipv4"
+    load_balancer_type = "application"
+    client_keep_alive = true                        # KZ: This is be in seconds: https://docs.aws.amazon.com/elasticloadbalancing/latest/APIReference/API_LoadBalancerAttribute.html
+
+    customer_owned_ipv4_pool = null                 # KZ: What is this null? Should be none?
+    desync_mitigation_mode = "defensive"
+    dns_record_client_routing_policy = "simple"     # KZ: Possible values should be `availability_zone_affinity`, `partial_availability_zone_affinity` and `any_availability_zone`
+    drop_invalid_header_fields = true
+    enable_cross_zone_load_balancing = true
+    enable_deletion_protection = false
+    enable_http2 = true
+    enable_tls_version_and_cipher_suite_headers = true
+    enable_waf_fail_open = false
+    enable_xff_client_port = true
+    enable_zonal_shift = false
+
+    enforce_security_group_inbound_rules_on_private_link_traffic = "on"
+    idle_timeout = 60
+    preserve_host_header = true
+
+    security_groups = ["sg-0123456789abcdef0"]
+
+    access_logs = [                         # Not done yet
+      {
+        bucket = "my-log-bucket"
+        enabled = true
+        prefix = "logs/"
+      }
+    ]
+
+    connection_logs = {                     # Not done yet
+      bucket = "my-log-bucket"
+      enabled = true
+      prefix = "conn-logs/"
+    }
+
+    subnet_mapping = [                      # Not done yet
+      {
+        subnet_id = "subnet-12345678"
+        allocation_id = "eipalloc-12345678"
+        ipv6_address = null
+        private_ipv4_address = null
+      }
+    ]
+
+    subnets = ["subnet-12345678", "subnet-87654321"]
+
+    tags = {
+      Environment = "dev"
+      Project     = "load-balancer"
+    }
+
+    xff_header_processing_mode = "append"
+
+    default_port     = 80               # What is this? How does this map to existing resource in AWS?
+    default_protocol = "HTTP"           # What is this? How does this map to existing resource in AWS?
+    vpc_id           = "vpc-12345678"
+
+    listeners = {
+      http = {
+        port     = 80
+        protocol = "HTTP"
+        certificate_arn = "arn:aws:cert-1" # default certificate
+        additional_certificate_arns = ["arn:aws:cert-2"] # Any additional certificates attached to the listener
+        default_action = {
+          fixed_response = {
+            content_type = "text/plain"
+            message_body = "Service Unavailable"
+            status_code  = "503"
+          }
+        }
+      }
+    }
+
+    target_groups = {                   # Not done yet
+      app1 = {
+        name = "app1-tg"
+        port = 80
+        protocol = "HTTP"
+        vpc_id = "vpc-12345678"
+        health_check = {
+          enabled             = true
+          healthy_threshold   = 3
+          interval            = 30
+          path                = "/"
+          protocol            = "HTTP"
+          timeout             = 5
+          unhealthy_threshold = 2
+        }
+        stickiness = {
+          enabled = true
+          type    = "lb_cookie"
+        }
+        target_type = "instance"
+      }
+    }
+  }
+}
