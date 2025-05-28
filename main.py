@@ -37,28 +37,20 @@ def get_all_lb_attributes():
             "subnets": [az.get("SubnetId") for az in lb.get("AvailabilityZones")],
             "security_groups_ids": lb.get("SecurityGroups", []),
             "ip_address_type": lb.get("IpAddressType"),
-            "enforce_security_group_inbound_rules_on_private_link_traffic": lb.get(
-                "EnforceSecurityGroupInboundRulesOnPrivateLinkTraffic", "on"),
+            "enforce_security_group_inbound_rules_on_private_link_traffic": lb.get( "EnforceSecurityGroupInboundRulesOnPrivateLinkTraffic", "on"),
             # Only applicable to NLB but seems like sample structure has this attribute so we cater for it
             "customer_owned_ipv4_pool": lb.get("CustomerOwnedIpv4Pool") if lb.get("CustomerOwnedIpv4Pool") else None,
             "deletion_protection": get_attribute_value(lb_attributes, "deletion_protection.enabled", False),
-            "enable_cross_zone_load_balancing": get_attribute_value(lb_attributes, "load_balancing.cross_zone.enabled",
-                                                                    True if is_alb else False),
+            "enable_cross_zone_load_balancing": get_attribute_value(lb_attributes, "load_balancing.cross_zone.enabled", True if is_alb else False),
             "client_keep_alive": get_attribute_value(lb_attributes, "client_keep_alive.seconds", 3600),
-            "desync_mitigation_mode": get_attribute_value(lb_attributes, "routing.http.desync_mitigation_mode",
-                                                          "defensive"),
-            "dns_record_client_routing_policy": get_attribute_value(lb_attributes, "dns_record.client_routing_policy",
-                                                                    "any_availability_zone"),
-            "drop_invalid_header_fields": get_attribute_value(lb_attributes,
-                                                              "routing.http.drop_invalid_header_fields.enabled", False),
+            "desync_mitigation_mode": get_attribute_value(lb_attributes, "routing.http.desync_mitigation_mode", "defensive"),
+            "dns_record_client_routing_policy": get_attribute_value(lb_attributes, "dns_record.client_routing_policy", "any_availability_zone"),
+            "drop_invalid_header_fields": get_attribute_value(lb_attributes, "routing.http.drop_invalid_header_fields.enabled", False),
             "enable_http2": get_attribute_value(lb_attributes, "routing.http2.enabled", True),
-            "enable_tls_version_and_cipher_suite_headers": get_attribute_value(lb_attributes,
-                                                                               "routing.http.x_amzn_tls_version_and_cipher_suite.enabled",
-                                                                               False),
+            "enable_tls_version_and_cipher_suite_headers": get_attribute_value(lb_attributes, "routing.http.x_amzn_tls_version_and_cipher_suite.enabled", False),
             "enable_waf_fail_open": get_attribute_value(lb_attributes, "waf.fail_open.enabled", False),
             "enable_xff_client_port": get_attribute_value(lb_attributes, "routing.http.xff_client_port.enabled", False),
-            "xff_header_processing_mode": get_attribute_value(lb_attributes, "routing.http.xff_header_processing.mode",
-                                                              False),
+            "xff_header_processing_mode": get_attribute_value(lb_attributes, "routing.http.xff_header_processing.mode", False),
             "enable_zonal_shift": get_attribute_value(lb_attributes, "zonal_shift.config.enabled", False),
             "idle_timeout": get_attribute_value(lb_attributes, "idle_timeout.timeout_seconds", 60),
             "preserve_host_header": get_attribute_value(lb_attributes, "routing.http.preserve_host_header.enabled",
@@ -117,10 +109,9 @@ def get_all_lb_attributes():
             additional_certificate_arns = []
 
             if certificates:
-                certificate_arn = next(
-                    (cert["CertificateArn"] for cert in certificates if cert["IsDefault"]))  # Default certificate
-                additional_certificate_arns = [cert["CertificateArn"] for cert in certificates if not cert[
-                    "IsDefault"]]  # Any additional certificates attached to the listener
+                certificate_arn = next((cert["CertificateArn"] for cert in certificates if cert["IsDefault"]))  # Default certificate
+                additional_certificate_arns = [cert["CertificateArn"] for cert in certificates if not cert["IsDefault"]]  # Any additional certificates attached to the listener
+
             formatted_listener_config["certificate_arn"] = certificate_arn
             formatted_listener_config["additional_certificate_arns"] = additional_certificate_arns
 
@@ -129,6 +120,7 @@ def get_all_lb_attributes():
             }
 
             formatted_lb_attributes["listeners"].append(formatted_lb_listener)
+
         compiled_load_balancers["load_balancers"].append(formatted_lb_attributes)
 
     return compiled_load_balancers
