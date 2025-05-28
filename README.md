@@ -36,6 +36,74 @@ lb_config = {
     vpc_id = "vpc-0958771d93cc3cc6c"
     security_groups_ids = []
 
+    subnet_mapping = [
+      {
+        subnet_id = "subnet-050239ff37c785c2a"
+        allocation_id = "eipalloc-05242d82dda1475d0"
+        ipv6_address = "None"
+        private_ipv4_address = "None"
+      }
+    ]
+
+    access_logs = [
+      {
+        bucket = ""
+        enabled = false
+        prefix = ""
+      }
+    ]
+
+    connection_logs = [
+      {
+        bucket = ""
+        enabled = false
+        prefix = ""
+      }
+    ]
+
+    target_groups = {
+      likzv-vault = {
+        name = "likzv-vault"
+        port = "TCP"
+        protocol = "8200"
+        vpc_id = "vpc-0958771d93cc3cc6c"
+        target_type = "instance"
+        health_check = {
+          enabled = true
+          healthy_threshold = 3
+          interval = 5
+          path = "/v1/sys/health?standbyok=true&perfstandbyok=true&activecode=200&standbycode=429&drsecondarycode=472&performancestandbycode=473&sealedcode=503&uninitcode=200"
+          protocol = "HTTPS"
+          timeout = 3
+          unhealthy_threshold = 3
+        }
+        stickiness = {
+          enabled = false
+          type = "source_ip"
+        }
+      }, 
+      likzv-vault-kmip = {
+        name = "likzv-vault-kmip"
+        port = "TCP"
+        protocol = "5696"
+        vpc_id = "vpc-0958771d93cc3cc6c"
+        target_type = "instance"
+        health_check = {
+          enabled = true
+          healthy_threshold = 3
+          interval = 5
+          path = "/v1/sys/health?standbyok=true&perfstandbyok=true&activecode=200&standbycode=429&drsecondarycode=472&performancestandbycode=473&sealedcode=503&uninitcode=200"
+          protocol = "HTTPS"
+          timeout = 3
+          unhealthy_threshold = 3
+        }
+        stickiness = {
+          enabled = false
+          type = "source_ip"
+        }
+      }
+    }
+
     ip_address_type = "ipv4"
     load_balancer_type = "network"
     customer_owned_ipv4_pool = "None"
@@ -118,6 +186,80 @@ lb_config = {
     }
     vpc_id = "vpc-0958771d93cc3cc6c"
     security_groups_ids = ['sg-03b051e17aa170fcc']
+
+    subnet_mapping = [
+      {
+        subnet_id = "subnet-0bd0945130fb0ce5f"
+        allocation_id = null
+        ipv6_address = null
+        private_ipv4_address = null
+      }, 
+      {
+        subnet_id = "subnet-0d8007e17249aa3cc"
+        allocation_id = null
+        ipv6_address = null
+        private_ipv4_address = null
+      }
+    ]
+
+    access_logs = [
+      {
+        bucket = ""
+        enabled = false
+        prefix = ""
+      }
+    ]
+
+    connection_logs = [
+      {
+        bucket = ""
+        enabled = false
+        prefix = ""
+      }
+    ]
+
+    target_groups = {
+      test = {
+        name = "test"
+        port = "HTTP"
+        protocol = "80"
+        vpc_id = "vpc-0958771d93cc3cc6c"
+        target_type = "instance"
+        health_check = {
+          enabled = true
+          healthy_threshold = 5
+          interval = 30
+          path = "/"
+          protocol = "HTTP"
+          timeout = 5
+          unhealthy_threshold = 2
+        }
+        stickiness = {
+          enabled = false
+          type = "lb_cookie"
+        }
+      }, 
+      test3 = {
+        name = "test3"
+        port = "HTTP"
+        protocol = "80"
+        vpc_id = "vpc-0958771d93cc3cc6c"
+        target_type = "instance"
+        health_check = {
+          enabled = true
+          healthy_threshold = 5
+          interval = 30
+          path = "/"
+          protocol = "HTTP"
+          timeout = 5
+          unhealthy_threshold = 2
+        }
+        stickiness = {
+          enabled = false
+          type = "lb_cookie"
+        }
+      }
+    }
 
     ip_address_type = "ipv4"
     load_balancer_type = "application"
