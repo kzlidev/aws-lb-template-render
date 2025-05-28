@@ -104,8 +104,8 @@ lb_config = {
 
     xff_header_processing_mode = "append"
 
-    default_port     = 80               # What is this? How does this map to existing resource in AWS?
-    default_protocol = "HTTP"           # What is this? How does this map to existing resource in AWS?
+    default_port     = 80               # KZ: What is this? How does this map to existing resource in AWS?
+    default_protocol = "HTTP"           # KZ: What is this? How does this map to existing resource in AWS?
     vpc_id           = "vpc-12345678"
 
     listeners = {
